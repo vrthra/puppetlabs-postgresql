@@ -8,6 +8,12 @@
 #                                       defaults to '127.0.0.1/32', meaning only allow connections from localhost
 #   [*listen_addresses*]        - what IP address(es) to listen on; comma-separated list of addresses; defaults to
 #                                    'localhost', '*' = all
+#   [*wal_level*]               - The mode of wal shipping. default is minimal. Use hot_standby to enable failover.
+#   [*max_wal_senders*]         - Maximum number of concurrent connections from standbys
+#   [*wal_keep_segments*]       - Number of segments to save from GC before shipping to standby.
+#   [*archive_mode*]            - Are we shipping WAL to standby?
+#   [*archive_command*]         - If we are shipping WAL, what is the command?
+#   [*hot_standby*]             - Are we standby?
 #   [*ipv4acls*]                - list of strings for access control for connection method, users, databases, IPv4
 #                                    addresses; see postgresql documentation about pg_hba.conf for information
 #   [*ipv6acls*]                - list of strings for access control for connection method, users, databases, IPv6
@@ -40,6 +46,12 @@ class postgresql::config::beforeservice(
   $ip_mask_deny_postgres_user = $postgresql::params::ip_mask_deny_postgres_user,
   $ip_mask_allow_all_users    = $postgresql::params::ip_mask_allow_all_users,
   $listen_addresses           = $postgresql::params::listen_addresses,
+  $wal_level                    = $postgresql::params::wal_level,
+  $max_wal_senders              = $postgresql::params::max_wal_senders,
+  $wal_keep_segments            = $postgresql::params::wal_keep_segments,
+  $archive_mode                 = $postgresql::params::archive_mode,
+  $archive_command              = $postgresql::params::archive_command,
+  $hot_standby                  = $postgresql::params::hot_standby,
   $ipv4acls                   = $postgresql::params::ipv4acls,
   $ipv6acls                   = $postgresql::params::ipv6acls,
   $manage_redhat_firewall     = $postgresql::params::manage_redhat_firewall,
@@ -121,6 +133,58 @@ class postgresql::config::beforeservice(
     path        => $postgresql_conf_path,
     match       => '^listen_addresses\s*=.*$',
     line        => "listen_addresses = '${listen_addresses}'",
+    notify      => Service['postgresqld'],
+  }
+
+
+  # We must set a "wal_level" line in the postgresql.conf if we
+  # if we want to enable readonly queries in slave. (This is set in master)
+  file_line { 'postgresql.conf#wal_level':
+    path        => $postgresql_conf_path,
+    match       => '^wal_level\s*=.*$',
+    line        => "wal_level = '${wal_level}'",
+    notify      => Service['postgresqld'],
+  }
+
+  # We must set a "max_wal_senders" line in the postgresql.conf if we
+  # if we want to let standby servers connect
+  file_line { 'postgresql.conf#max_wal_senders':
+    path        => $postgresql_conf_path,
+    match       => '^max_wal_senders\s*=.*$',
+    line        => "max_wal_senders = '${max_wal_senders}'",
+    notify      => Service['postgresqld'],
+  }
+
+  # We must set a "wal_keep_segments" line in the postgresql.conf to make
+  # sure that master does not GC before it gets shipped to standby
+  file_line { 'postgresql.conf#wal_keep_segments':
+    path        => $postgresql_conf_path,
+    match       => '^wal_keep_segments\s*=.*$',
+    line        => "wal_keep_segments = '${wal_keep_segments}'",
+    notify      => Service['postgresqld'],
+  }
+
+  # Do we still ship the WAL to standby? default is off.
+  file_line { 'postgresql.conf#archive_mode':
+    path        => $postgresql_conf_path,
+    match       => '^archive_mode\s*=.*$',
+    line        => "archive_mode = '${archive_mode}'",
+    notify      => Service['postgresqld'],
+  }
+
+  # What command to use to ship WAL?
+  file_line { 'postgresql.conf#archive_command':
+    path        => $postgresql_conf_path,
+    match       => '^archive_command\s*=.*$',
+    line        => "archive_command = '${archive_command}'",
+    notify      => Service['postgresqld'],
+  }
+
+  # Are we standby?
+  file_line { 'postgresql.conf#hot_standby':
+    path        => $postgresql_conf_path,
+    match       => '^hot_standby\s*=.*$',
+    line        => "hot_standby = '${hot_standby}'",
     notify      => Service['postgresqld'],
   }
 
