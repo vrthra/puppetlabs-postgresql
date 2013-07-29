@@ -9,6 +9,12 @@
 #                                       defaults to '127.0.0.1/32', meaning only allow connections from localhost
 #   [*listen_addresses*]             - what IP address(es) to listen on; comma-separated list of addresses; defaults to
 #                                       'localhost', '*' = all
+#   [*wal_level*]                    - what mode to adopt in clustering; defaults to minimal could be archive or hot_standby
+#   [*max_wal_senders*]              - how many concurent connections from the standby servers.
+#   [*wal_keep_segments*]            - how many segments to retain from gc. default is 32
+#   [*archive_mode*]                 - Do we still ship WAL to standby?
+#   [*archive_command*]              - What command to use for archive?
+#   [*hot_standby*]                  - Are we standby?
 #   [*ipv4acls*]                     - list of strings for access control for connection method, users, databases, IPv4
 #                                       addresses; see postgresql documentation about pg_hba.conf for information
 #   [*ipv6acls*]                     - list of strings for access control for connection method, users, databases, IPv6
@@ -38,6 +44,12 @@ class postgresql::config(
   $ip_mask_deny_postgres_user = $postgresql::params::ip_mask_deny_postgres_user,
   $ip_mask_allow_all_users    = $postgresql::params::ip_mask_allow_all_users,
   $listen_addresses           = $postgresql::params::listen_addresses,
+  $wal_level                  = $postgresql::params::wal_level,
+  $max_wal_senders            = $postgresql::params::max_wal_senders,
+  $wal_keep_segments          = $postgresql::params::wal_keep_segments,
+  $archive_mode               = $postgresql::params::archive_mode,
+  $archive_command            = $postgresql::params::archive_command,
+  $hot_standby                = $postgresql::params::hot_standby,
   $ipv4acls                   = $postgresql::params::ipv4acls,
   $ipv6acls                   = $postgresql::params::ipv6acls,
   $pg_hba_conf_path           = $postgresql::params::pg_hba_conf_path,
@@ -54,6 +66,12 @@ class postgresql::config(
     ip_mask_deny_postgres_user => $ip_mask_deny_postgres_user,
     ip_mask_allow_all_users    => $ip_mask_allow_all_users,
     listen_addresses           => $listen_addresses,
+    wal_level                  => $wal_level,
+    max_wal_senders            => $max_wal_senders,
+    wal_keep_segments          => $wal_keep_segments,
+    archive_mode               => $archive_mode,
+    archive_command            => $archive_command,
+    hot_standby                => $hot_standby,
     ipv4acls                   => $ipv4acls,
     ipv6acls                   => $ipv6acls,
     pg_hba_conf_path           => $pg_hba_conf_path,

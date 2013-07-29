@@ -8,6 +8,12 @@
 #                                       defaults to '127.0.0.1/32', meaning only allow connections from localhost
 #   [*listen_addresses*]        - what IP address(es) to listen on; comma-separated list of addresses; defaults to
 #                                    'localhost', '*' = all
+#   [*wal_level*]               - The mode of wal shipping. default is minimal. Use hot_standby to enable failover.
+#   [*max_wal_senders*]         - Maximum number of concurrent connections from standbys
+#   [*wal_keep_segments*]       - Number of segments to save from GC before shipping to standby.
+#   [*archive_mode*]            - Are we shipping WAL to standby?
+#   [*archive_command*]         - If we are shipping WAL, what is the command?
+#   [*hot_standby*]             - Are we standby?
 #   [*ipv4acls*]                - list of strings for access control for connection method, users, databases, IPv4
 #                                    addresses; see postgresql documentation about pg_hba.conf for information
 #   [*ipv6acls*]                - list of strings for access control for connection method, users, databases, IPv6
@@ -40,6 +46,12 @@ class postgresql::config::beforeservice(
   $ip_mask_deny_postgres_user = $postgresql::params::ip_mask_deny_postgres_user,
   $ip_mask_allow_all_users    = $postgresql::params::ip_mask_allow_all_users,
   $listen_addresses           = $postgresql::params::listen_addresses,
+  $wal_level                  = $postgresql::params::wal_level,
+  $max_wal_senders            = $postgresql::params::max_wal_senders,
+  $wal_keep_segments          = $postgresql::params::wal_keep_segments,
+  $archive_mode               = $postgresql::params::archive_mode,
+  $archive_command            = $postgresql::params::archive_command,
+  $hot_standby                = $postgresql::params::hot_standby,
   $ipv4acls                   = $postgresql::params::ipv4acls,
   $ipv6acls                   = $postgresql::params::ipv6acls,
   $manage_redhat_firewall     = $postgresql::params::manage_redhat_firewall,
@@ -121,6 +133,40 @@ class postgresql::config::beforeservice(
   postgresql::pg_conf_entry{ 'listen_addresses':
     value        => "${listen_addresses}",
   }
+
+  # We must set a "wal_level" line in the postgresql.conf if we
+  # if we want to enable readonly queries in slave. (This is set in master)
+  postgresql::pg_conf_entry{ 'wal_level':
+    value        => "${wal_level}",
+  }
+
+  # We must set a "max_wal_senders" line in the postgresql.conf if we
+  # if we want to let standby servers connect
+  postgresql::pg_conf_entry{ 'max_wal_senders':
+    value        => "${max_wal_senders}",
+  }
+
+  # We must set a "wal_keep_segments" line in the postgresql.conf to make
+  # sure that master does not GC before it gets shipped to standby
+  postgresql::pg_conf_entry{ 'wal_keep_segments':
+    value        => "${wal_keep_segments}",
+  }
+
+  # Do we still ship the WAL to standby? default is off.
+  postgresql::pg_conf_entry{ 'archive_mode':
+    value        => "${archive_mode}",
+  }
+
+  # What command to use to ship WAL?
+  postgresql::pg_conf_entry{ 'archive_command':
+    value        => "${archive_command}",
+  }
+
+  # Are we standby?
+  postgresql::pg_conf_entry{ 'hot_standby':
+    value        => "${hot_standby}",
+  }
+
 
   # Here we are adding an 'include' line so that users have the option of
   # managing their own settings in a second conf file. This only works for
