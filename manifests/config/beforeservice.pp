@@ -130,40 +130,40 @@ class postgresql::config::beforeservice(
   # We must set a "listen_addresses" line in the postgresql.conf if we
   #  want to allow any connections from remote hosts.
 
-  postgresql::pg_conf_entry{ 'listen_addresses':
+  postgresql::config_entry{ 'listen_addresses':
     value        => "${listen_addresses}",
   }
 
   # We must set a "wal_level" line in the postgresql.conf if we
   # if we want to enable readonly queries in slave. (This is set in master)
-  postgresql::pg_conf_entry{ 'wal_level':
+  postgresql::config_entry{ 'wal_level':
     value        => "${wal_level}",
   }
 
   # We must set a "max_wal_senders" line in the postgresql.conf if we
   # if we want to let standby servers connect
-  postgresql::pg_conf_entry{ 'max_wal_senders':
+  postgresql::config_entry{ 'max_wal_senders':
     value        => "${max_wal_senders}",
   }
 
   # We must set a "wal_keep_segments" line in the postgresql.conf to make
   # sure that master does not GC before it gets shipped to standby
-  postgresql::pg_conf_entry{ 'wal_keep_segments':
+  postgresql::config_entry{ 'wal_keep_segments':
     value        => "${wal_keep_segments}",
   }
 
   # Do we still ship the WAL to standby? default is off.
-  postgresql::pg_conf_entry{ 'archive_mode':
+  postgresql::config_entry{ 'archive_mode':
     value        => "${archive_mode}",
   }
 
   # What command to use to ship WAL?
-  postgresql::pg_conf_entry{ 'archive_command':
+  postgresql::config_entry{ 'archive_command':
     value        => "${archive_command}",
   }
 
   # Are we standby?
-  postgresql::pg_conf_entry{ 'hot_standby':
+  postgresql::config_entry{ 'hot_standby':
     value        => "${hot_standby}",
   }
 
@@ -180,7 +180,7 @@ class postgresql::config::beforeservice(
       unless  => "[ -f `dirname ${postgresql_conf_path}`/postgresql_puppet_extras.conf ]"
     }
 
-    postgresql::pg_conf_entry{ 'include':
+    postgresql::config_entry{ 'include':
       value        => "postgresql_puppet_extras.conf",
       require     => Exec["create_postgresql_conf_path"],
     }

@@ -8,18 +8,18 @@
 # - Creates and manages a postgresql configuration entry.
 #
 # Sample usage:
-#   postgresql::pg_conf_entry { 'shared_buffers':
+#   postgresql::config_entry { 'shared_buffers':
 #     value => '128MB',
 #   }
 #
-#   postgresql::pg_conf_entry { 'fsync':
+#   postgresql::config_entry { 'fsync':
 #     ensure => absent, # reset to default value
 #   }
 #
 # See also:
 #   http://www.postgresql.org/docs/current/static/config-setting.html
 #
-define postgresql::pg_conf_entry (
+define postgresql::config_entry (
     $ensure='present',
     $value=undef,
     $path=false
