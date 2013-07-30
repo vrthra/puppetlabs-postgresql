@@ -38,7 +38,6 @@ RSpec.configure do |c|
     shell('puppet module install puppetlabs/firewall')
     shell('puppet module install puppetlabs/apt')
     shell('puppet module install ripienaar/concat')
-    shell('puppet module install vrthra/pgconf')
 
     file = Tempfile.new('foo')
     begin
