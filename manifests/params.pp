@@ -52,12 +52,6 @@ class postgresql::params(
   $ip_mask_deny_postgres_user   = '0.0.0.0/0'
   $ip_mask_allow_all_users      = '127.0.0.1/32'
   $listen_addresses             = 'localhost'
-  $wal_level                    = 'minimal'
-  $max_wal_senders              = '0'
-  $wal_keep_segments            = '32'
-  $archive_mode                 = 'off'
-  $archive_command              = 'true'
-  $hot_standby                  = 'off'
   $ipv4acls                     = []
   $ipv6acls                     = []
   $manage_pg_hba_conf           = true
