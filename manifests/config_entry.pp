@@ -55,7 +55,7 @@ define postgresql::config_entry (
         ensure  => $ensure,
         target  => $target,
         value   => $value,
-        require => Package["${::postgresql::params::server_package_name}"],
+        require => Class["postgresql::config"],
       }
     }
 
