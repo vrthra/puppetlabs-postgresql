@@ -1,27 +1,5 @@
-# Class: postgresql::server
-#
-# == Class: postgresql::server
-# Manages the installation of the postgresql server.  manages the package and
-# service.
-#
-# === Parameters:
-# [*package_name*] - name of package
-# [*service_name*] - name of service
-#
-# Configuration:
-#   Advanced configuration setting parameters can be placed into 'postgresql_puppet_extras.conf' (located in the same
-#   folder as 'postgresql.conf'). You can manage that file as a normal puppet file resource, or however you see fit;
-#   which gives you complete control over the settings. Any value you specify in that file will override any existing
-#   value set in the templated version.
-#
-# Actions:
-#
-# Requires:
-#
-# Sample Usage:
-#
 class postgresql::server (
-  $ensure           = 'present',
+  $ensure           = true,
   $package_name     = $postgresql::params::server_package_name,
   $package_ensure   = 'present',
   $service_name     = $postgresql::params::service_name,
@@ -31,75 +9,70 @@ class postgresql::server (
   $datadir          = $postgresql::params::datadir
 ) inherits postgresql::params {
 
-  if ($ensure == 'absent') {
-    service { 'postgresqld':
-      ensure    => stopped,
-      name      => $service_name,
-      enable    => false,
-      provider  => $service_provider,
-      hasstatus => true,
-      status    => $service_status,
-    }->
-    package { 'postgresql-server':
-      ensure  => purged,
-      name    => $package_name,
-      tag     => 'postgresql',
-    }->
+  anchor {
+    'postgresql::server::start': ;
+    'postgresql::server::end': ;
+  }
+  
+  # This gets signalled by configuration defines, to avoid doing a full service
+  # restart.
+  exec { 'reload_postgresql':
+    path        => '/usr/bin:/usr/sbin:/bin:/sbin',
+    command     => "service ${service_name} reload",
+    onlyif      => $service_status,
+    refreshonly => true,
+  }
+
+  if ($ensure == 'absent' or $ensure == 'stopped' or $ensure == false) {
+    class { 'postgresql::server::package': ensure => absent }
+    class { 'postgresql::server::service': ensure => stopped }
     file { $datadir:
       ensure  => absent,
       recurse => true,
       force   => true,
     }
+    Anchor['postgresql::server::start'] ->
+    Class['postgresql::server::service'] -> Class['postgresql::server::package'] -> File[$datadir] ->
+    Anchor['postgresql::server::end']
   } else {
-    package { 'postgresql-server':
-      ensure  => $package_ensure,
-      name    => $package_name,
-      tag     => 'postgresql',
-    }
-
+    class { 'postgresql::server::package': }
     $config_class = {
-      'postgresql::config' => $config_hash,
+      'postgresql::server::config' => $config_hash,
     }
-
     create_resources( 'class', $config_class )
-
-    service { 'postgresqld':
-      ensure    => running,
-      name      => $service_name,
-      enable    => true,
-      require   => Package['postgresql-server'],
-      provider  => $service_provider,
-      hasstatus => true,
-      status    => $service_status,
-    }
-
-    anchor {
-      'postgresql::server:start': ;
-      'postgresql::server:end': ;
-    }
-
-    anchor {
-      'postgresql::server:estart': ;
-      'postgresql::server:eend': ;
-    }
+    class { 'postgresql::server::service': }
+    class { 'postgresql::server::passwd': }
 
     if ($postgresql::params::needs_initdb) {
-      include postgresql::initdb
-      Anchor['postgresql::server:start'] ->
-      Package['postgresql-server'] -> Class['postgresql::initdb'] -> Class['postgresql::config'] -> Service['postgresqld'] ->
-      Anchor['postgresql::server:end']
+      include postgresql::server::initdb
+      Anchor['postgresql::server::start'] ->
+      Class['postgresql::server::package'] -> Class['postgresql::server::initdb'] -> Class['postgresql::server::config'] -> Class['postgresql::server::service'] -> Class['postgresql::server::passwd'] ->
+      Anchor['postgresql::server::end']
     }
     else  {
-      Anchor['postgresql::server:estart'] ->
-      Package['postgresql-server'] -> Class['postgresql::config'] -> Service['postgresqld'] ->
-      Anchor['postgresql::server:eend']
+      Anchor['postgresql::server::start'] ->
+      Class['postgresql::server::package'] -> Class['postgresql::server::config'] -> Class['postgresql::server::service'] -> Class['postgresql::server::passwd'] ->
+      Anchor['postgresql::server::end']
     }
 
-    exec { 'reload_postgresql':
-      path        => '/usr/bin:/usr/sbin:/bin:/sbin',
-      command     => "service ${service_name} reload",
-      onlyif      => $service_status,
+  }
+
+  # TODO: get rid of hard-coded port
+  if ($manage_redhat_firewall and $firewall_supported) {
+    class { 'firewall': }
+    exec { 'postgresql-persist-firewall':
+      command     => $persist_firewall_command,
       refreshonly => true,
+    }
+
+    Firewall {
+      notify => Exec['postgresql-persist-firewall']
+    }
+
+    firewall { '5432 accept - postgres':
+      port   => '5432',
+      proto  => 'tcp',
+      action => 'accept',
     }
   }
 

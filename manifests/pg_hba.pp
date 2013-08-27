@@ -10,10 +10,11 @@ define postgresql::pg_hba(
 
   # Collect file from fragments
   concat { $target:
-    owner => $owner,
-    group => $group,
-    mode  => '0640',
-    warn  => true,
+    owner  => $owner,
+    group  => $group,
+    mode   => '0640',
+    warn   => true,
+    notify => Exec['reload_postgresql'],
   }
 
 }
