@@ -1,5 +1,4 @@
 class postgresql::server::config (
-  $postgres_password          = undef,
   $ip_mask_deny_postgres_user = $postgresql::params::ip_mask_deny_postgres_user,
   $ip_mask_allow_all_users    = $postgresql::params::ip_mask_allow_all_users,
   $listen_addresses           = $postgresql::params::listen_addresses,
@@ -87,14 +86,15 @@ class postgresql::server::config (
   # managing their own settings in a second conf file. This only works for
   # postgresql 8.2 and higher.
   if(versioncmp($postgresql::params::version, '8.2') >= 0) {
-    $pg_conf_dir = dirname($postgresql_conf_path)
-    file { "$pg_conf_dir/postgresql_puppet_extras.conf":
-      ensure => present,
+    exec { 'create_postgresql_conf_path':
+      command => "touch `dirname ${postgresql_conf_path}`/postgresql_puppet_extras.conf",
+      path    => '/usr/bin:/bin',
+      unless  => "[ -f `dirname ${postgresql_conf_path}`/postgresql_puppet_extras.conf ]"
     }
 
     postgresql::config_entry{ 'include':
       value => "postgresql_puppet_extras.conf",
-      require => File["$pg_conf_dir/postgresql_puppet_extras.conf"],
+      require => Exec['create_postgresql_conf_path'],
     }
   }
 

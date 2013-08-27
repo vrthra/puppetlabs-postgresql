@@ -26,6 +26,9 @@ describe 'non defaults:' do
           version              => "9.2",
           manage_package_repo  => true,
         }->
+        class { "postgresql::plperl":
+          package_ensure => absent,
+        }->
         class { 'postgresql::server':
           ensure => absent,
           service_status => 'service postgresql-9.2 status',

@@ -1,12 +1,13 @@
 class postgresql::server (
-  $ensure           = true,
-  $package_name     = $postgresql::params::server_package_name,
-  $package_ensure   = 'present',
-  $service_name     = $postgresql::params::service_name,
-  $service_provider = $postgresql::params::service_provider,
-  $service_status   = $postgresql::params::service_status,
-  $config_hash      = {},
-  $datadir          = $postgresql::params::datadir
+  $ensure            = true,
+  $package_name      = $postgresql::params::server_package_name,
+  $package_ensure    = 'present',
+  $service_name      = $postgresql::params::service_name,
+  $service_provider  = $postgresql::params::service_provider,
+  $service_status    = $postgresql::params::service_status,
+  $config_hash       = {},
+  $postgres_password = undef,
+  $datadir           = $postgresql::params::datadir
 ) inherits postgresql::params {
 
   anchor {
@@ -41,7 +42,7 @@ class postgresql::server (
     }
     create_resources( 'class', $config_class )
     class { 'postgresql::server::service': }
-    class { 'postgresql::server::passwd': }
+    class { 'postgresql::server::passwd': postgres_password => $postgres_password }
 
     if ($postgresql::params::needs_initdb) {
       include postgresql::server::initdb
