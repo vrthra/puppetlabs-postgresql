@@ -1,5 +1,5 @@
 module Puppet
-  newtype(:pgconf) do
+  newtype(:postgresql_conf) do
 
     @doc = "This type allows puppet to manage postgresql.conf parameters."
 

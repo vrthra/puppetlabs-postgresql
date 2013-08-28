@@ -1,6 +1,6 @@
 require 'puppet/provider/parsedfile'
 
-Puppet::Type.type(:pgconf).provide(
+Puppet::Type.type(:postgresql_conf).provide(
   :parsed,
   :parent => Puppet::Provider::ParsedFile,
   :default_target => '/etc/postgresql.conf',
