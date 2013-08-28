@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+# DEPRECATED: This defined resource will be removed in the future anyway, use
+# postgresql::role instead
 describe 'postgresql::database_user', :type => :define do
   let :facts do
     {
@@ -9,11 +11,6 @@ describe 'postgresql::database_user', :type => :define do
   end
   let :title do
     'test'
-  end
-  let :params do
-    {
-      :password_hash => 'test',
-    }
   end
   it { should include_class("postgresql::params") }
 end

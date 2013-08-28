@@ -10,5 +10,10 @@ describe 'postgresql::role', :type => :define do
   let :title do
     'test'
   end
+  let :params do
+    {
+      :password_hash => 'test',
+    }
+  end
   it { should include_class("postgresql::params") }
 end

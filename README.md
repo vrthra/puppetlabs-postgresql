@@ -93,7 +93,7 @@ There are many ways to set up a postgres database using the `postgresql::db` cla
 
 To manage users, roles and permissions:
 
-    postgresql::database_user{'marmot':
+    postgresql::role { 'marmot':
       password_hash => 'foo',
     }
 
@@ -380,6 +380,7 @@ Database to execute the grant against. This should not ordinarily be changed fro
 ####`psql_user`
 OS user for running `psql`. Defaults to the default user for the module, usually `postgres`.
 
+
 ###Resource: postgresql::table\_grant
 This defined type manages grant based access privileges for users. Consult the PostgreSQL documentation for `grant` for more information.
 
@@ -404,6 +405,7 @@ Database to execute the grant against. This should not ordinarily be changed fro
 ####`psql_user`
 OS user for running `psql`. Defaults to the default user for the module, usually `postgres`.
 
+
 ###Resource: postgresql::role
 This resource creates a role or user in PostgreSQL.
 
@@ -411,7 +413,11 @@ This resource creates a role or user in PostgreSQL.
 The role name to create.
 
 ####`password_hash`
-The hash to use during password creation. Use the `postgresql_password` function to provide an MD5 hash here.
+The hash to use during password creation. If the password is not already pre-encrypted in a format that PostgreSQL supports, use the `postgresql_password` function to provide an MD5 hash here, for example:
+
+    postgresql::role { "myusername":
+      password_hash => postgresql_password('mypassword'),
+    }
 
 ####`createdb`
 Weither to grant the ability to create new databases with this role. Defaults to `false`.
@@ -430,6 +436,10 @@ If `true` provides replication capabilities for this role. Defaults to `false`.
 
 ####`connection_limit`
 Specifies how many concurrent connections the role can make. Defaults to `-1` meaning no limit.
+
+####`username`
+The username of the role to create, defaults to `namevar`.
+
 
 ###Resource: postgresql::tablespace
 This defined type can be used to create a tablespace. For example:

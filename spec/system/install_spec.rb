@@ -258,7 +258,7 @@ describe 'install:' do
     end
   end
 
-  describe 'postgresql::database_user' do
+  describe 'postgresql::role' do
     it 'should idempotently create a user who can log in' do
       pp = <<-EOS
         $user = "postgresql_test_user"
@@ -271,7 +271,7 @@ describe 'install:' do
           ensure => present,
         }
 
-        postgresql::database_user { $user:
+        postgresql::role { $user:
           password_hash => postgresql_password($user, $password),
           require  => [ Class['postgresql::server'],
                         User[$user] ],
@@ -304,7 +304,7 @@ describe 'install:' do
           ensure => present,
         }
 
-        postgresql::database_user { $user:
+        postgresql::role { $user:
           password_hash => postgresql_password($user, $password),
           require  => [ Class['postgresql::server'],
                         User[$user] ],
@@ -337,7 +337,7 @@ describe 'install:' do
           ensure => present,
         }
 
-        postgresql::database_user { $user:
+        postgresql::role { $user:
           password_hash => $password,
           require  => [ Class['postgresql::server'],
                         User[$user] ],
@@ -359,6 +359,24 @@ describe 'install:' do
     end
   end
 
+  describe 'postgresql::database_user' do
+    it 'should throw a deprecation warning' do
+      pp = <<-EOS
+        include postgresql::server
+        postgresql::database_user { 'test_deprecation':
+          password_hash => 'foobar',
+        }
+      EOS
+
+      puppet_apply(pp) do |r|
+        r.exit_code.should_not == 1
+        r.stdout.should =~ /The defined resource 'postgresql::database_user' will be deprecated in the future/
+        r.refresh
+        r.exit_code.should == 0
+      end
+    end
+  end
+
   describe 'postgresql::database_grant' do
     it 'should grant access so a user can create in a database' do
       begin
@@ -374,7 +392,7 @@ describe 'install:' do
             ensure => present,
           }
 
-          postgresql::database_user { $user:
+          postgresql::role { $user:
             password_hash => postgresql_password($user, $password),
             require       => [
               Class['postgresql::server'],
@@ -392,7 +410,7 @@ describe 'install:' do
             role      => $user,
             require   => [
               Postgresql::Database[$db],
-              Postgresql::Database_user[$user],
+              Postgresql::Role[$user],
             ],
           }
         EOS
@@ -430,7 +448,7 @@ describe 'install:' do
             ensure => present,
           }
 
-          postgresql::database_user { $user:
+          postgresql::role { $user:
             password_hash => postgresql_password($user, $password),
             require       => [
               Class['postgresql::server'],
@@ -456,7 +474,7 @@ describe 'install:' do
             role      => $user,
             require   => [
               Postgresql::Database[$db],
-              Postgresql::Database_user[$user],
+              Postgresql::Role[$user],
               Postgresql_psql['Create testing table'],
             ],
           }
@@ -547,32 +565,32 @@ describe 'install:' do
           before      => File["/tmp/pg_tablespaces/space1", "/tmp/pg_tablespaces/space2"]
         }
 
-        postgresql::tablespace{ 'tablespace1':
+        postgresql::tablespace { 'tablespace1':
           location => '/tmp/pg_tablespaces/space1',
           require => [Class['postgresql::server'], File['/tmp/pg_tablespaces']],
         }
-        postgresql::database{ 'tablespacedb1':
+        postgresql::database { 'tablespacedb1':
           charset => 'utf8',
           tablespace => 'tablespace1',
           require => Postgresql::Tablespace['tablespace1'],
         }
-        postgresql::db{ 'tablespacedb2':
+        postgresql::db { 'tablespacedb2':
           user => 'dbuser2',
           password => postgresql_password('dbuser2', 'dbuser2'),
           tablespace => 'tablespace1',
           require => Postgresql::Tablespace['tablespace1'],
         }
 
-        postgresql::database_user{ 'spcuser':
+        postgresql::role { 'spcuser':
           password_hash => postgresql_password('spcuser', 'spcuser'),
           require       => Class['postgresql::server'],
         }
-        postgresql::tablespace{ 'tablespace2':
+        postgresql::tablespace { 'tablespace2':
           location => '/tmp/pg_tablespaces/space2',
           owner => 'spcuser',
-          require => [Postgresql::Database_user['spcuser'], File['/tmp/pg_tablespaces']],
+          require => [Postgresql::Role['spcuser'], File['/tmp/pg_tablespaces']],
         }
-        postgresql::database{ 'tablespacedb3':
+        postgresql::database { 'tablespacedb3':
           charset => 'utf8',
           tablespace => 'tablespace2',
           require => Postgresql::Tablespace['tablespace2'],

@@ -4,8 +4,6 @@ class postgresql::server::passwd {
   $user              = $postgresql::server::user
   $group             = $postgresql::server::group
 
-  notice("Password is: ${postgres_password}")
-
   if ($postgres_password != undef) {
     # NOTE: this password-setting logic relies on the pg_hba.conf being configured
     #  to allow the postgres system user to connect via psql without specifying
