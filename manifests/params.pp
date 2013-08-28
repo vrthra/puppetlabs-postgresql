@@ -1,35 +1,8 @@
-# Class: postgresql::params
-#
-#   The postgresql configuration settings.
-#
-# Parameters:
-#
-# Actions:
-#
-# Requires:
-#
-# Sample Usage:
-#
-
-# TODO: add real docs
-
-# This class allows you to use a newer version of postgres, rather than your
-# system's default version.
-#
-# If you want to do that, note that it is important that you use the '->',
-# or a before/require metaparameter to make sure that the `params`
-# class is evaluated before any of the other classes in the module.
-#
-# Also note that this class includes the ability to automatically manage
-# the yumrepo resource.  If you'd prefer to manage the repo yourself, simply pass
-# 'false' or omit the 'manage_repo' parameter--it defaults to 'false'.  You will
-# still need to use the 'params' class to specify the postgres version
-# number, though, in order for the other classes to be able to find the
-# correct paths to the postgres dirs.
-
+# PRIVATE CLASS: do not use directly
 class postgresql::params(
   $version                     = $::postgres_default_version,
   $manage_package_repo         = false,
+  $pg_hba_conf_defaults        = true,
   $package_source              = undef,
   $locale                      = undef,
   $charset                     = 'UTF8',
@@ -54,7 +27,6 @@ class postgresql::params(
   $listen_addresses             = 'localhost'
   $ipv4acls                     = []
   $ipv6acls                     = []
-  $manage_pg_hba_conf           = true
   # TODO: figure out a way to make this not platform-specific
   $manage_redhat_firewall       = false
 

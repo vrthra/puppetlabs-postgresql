@@ -22,10 +22,6 @@ define postgresql::pg_hba_rule(
     fail('You must specify an address property when type is host based')
   }
 
-  # This is required to make sure concat::setup is initialized first. This
-  # probably points to a bug inside ripienaar-concat.
-  include concat::setup
-
   # Create a rule fragment
   $fragname = "pg_hba_rule_${name}"
   concat::fragment { $fragname:
@@ -35,7 +31,4 @@ define postgresql::pg_hba_rule(
     owner   => $::id,
     mode    => '0600',
   }
-
-  Class['concat::setup']->
-    Concat::Fragment[$fragname]
 }

@@ -1,3 +1,4 @@
+# PRIVATE CLASS: do not use directly
 class postgresql::package_source::apt_postgresql_org {
   # Here we have tried to replicate the instructions on the PostgreSQL site:
   #

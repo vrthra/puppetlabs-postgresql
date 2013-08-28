@@ -161,10 +161,8 @@ describe 'install:' do
     it 'should install and successfully adjust the password' do
       pp = <<-EOS
         class { "postgresql::server":
-          postgres_password => 'TPSReports!',
-          config_hash => {
-            'ip_mask_deny_postgres_user' => '0.0.0.0/32',
-          },
+          postgres_password => 'foobarbaz',
+          ip_mask_deny_postgres_user => '0.0.0.0/32',
         }
       EOS
 
@@ -179,9 +177,7 @@ describe 'install:' do
       pp = <<-EOS
         class { "postgresql::server":
           postgres_password => 'TPSR$$eports!',
-          config_hash => {
-            'ip_mask_deny_postgres_user' => '0.0.0.0/32',
-          },
+          ip_mask_deny_postgres_user => '0.0.0.0/32',
         }
       EOS
 

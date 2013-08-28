@@ -1,6 +1,11 @@
-class postgresql::server::passwd (
-  $postgres_password = undef
-) inherits postgresql::params {
+# PRIVATE CLASS: do not call directly
+class postgresql::server::passwd {
+  $postgres_password = $postgresql::server::postgres_password
+  $user              = $postgresql::server::user
+  $group             = $postgresql::server::group
+
+  notice("Password is: ${postgres_password}")
+
   if ($postgres_password != undef) {
     # NOTE: this password-setting logic relies on the pg_hba.conf being configured
     #  to allow the postgres system user to connect via psql without specifying
@@ -9,9 +14,9 @@ class postgresql::server::passwd (
     $escapedpassword = postgresql_escape($postgres_password)
     exec { 'set_postgres_postgrespw':
       # This command works w/no password because we run it as postgres system user
-      command     => "psql -c 'ALTER ROLE \"${postgresql::params::user}\" PASSWORD ${escapedpassword}'",
-      user        => $postgresql::params::user,
-      group       => $postgresql::params::group,
+      command     => "psql -c 'ALTER ROLE \"${user}\" PASSWORD ${escapedpassword}'",
+      user        => $user,
+      group       => $group,
       logoutput   => true,
       cwd         => '/tmp',
       # With this command we're passing -h to force TCP authentication, which does require

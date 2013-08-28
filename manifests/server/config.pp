@@ -1,24 +1,34 @@
-class postgresql::server::config (
-  $ip_mask_deny_postgres_user = $postgresql::params::ip_mask_deny_postgres_user,
-  $ip_mask_allow_all_users    = $postgresql::params::ip_mask_allow_all_users,
-  $listen_addresses           = $postgresql::params::listen_addresses,
-  $ipv4acls                   = $postgresql::params::ipv4acls,
-  $ipv6acls                   = $postgresql::params::ipv6acls,
-  $pg_hba_conf_path           = $postgresql::params::pg_hba_conf_path,
-  $postgresql_conf_path       = $postgresql::params::postgresql_conf_path,
-  $manage_redhat_firewall     = $postgresql::params::manage_redhat_firewall,
-  $manage_pg_hba_conf         = $postgresql::params::manage_pg_hba_conf
-) inherits postgresql::params {
+# PRIVATE CLASS: do not call directly
+class postgresql::server::config {
+  $ip_mask_deny_postgres_user = $postgresql::server::ip_mask_deny_postgres_user
+  $ip_mask_allow_all_users    = $postgresql::server::ip_mask_allow_all_users
+  $listen_addresses           = $postgresql::server::listen_addresses
+  $ipv4acls                   = $postgresql::server::ipv4acls
+  $ipv6acls                   = $postgresql::server::ipv6acls
+  $pg_hba_conf_path           = $postgresql::server::pg_hba_conf_path
+  $postgresql_conf_path       = $postgresql::server::postgresql_conf_path
+  $manage_redhat_firewall     = $postgresql::server::manage_redhat_firewall
+  $pg_hba_conf_defaults       = $postgresql::server::pg_hba_conf_defaults
+  $user                       = $postgresql::server::user
+  $group                      = $postgresql::server::group
+  $version                    = $postgresql::server::version
 
   File {
-    owner => $postgresql::params::user,
-    group => $postgresql::params::group,
+    owner => $user,
+    group => $group,
   }
 
-  if $manage_pg_hba_conf {
-    # Create the main pg_hba resource
-    postgresql::pg_hba { 'main': }
+  # Prepare the main pg_hba file
+  include concat::setup
+  concat { $pg_hba_conf_path:
+    owner  => 0,
+    group  => $group,
+    mode   => '0640',
+    warn   => true,
+    notify => Exec['reload_postgresql'],
+  }
 
+  if $pg_hba_conf_defaults {
     Postgresql::Pg_hba_rule {
       database => 'all',
       user => 'all',
@@ -27,9 +37,9 @@ class postgresql::server::config (
     # Lets setup the base rules
     postgresql::pg_hba_rule { 'local access as postgres user':
       type        => 'local',
-      user        => $postgresql::params::user,
+      user        => $user,
       auth_method => 'ident',
-      auth_option => $postgresql::params::version ? {
+      auth_option => $version ? {
         '8.1'   => 'sameuser',
         default => undef,
       },
@@ -38,7 +48,7 @@ class postgresql::server::config (
     postgresql::pg_hba_rule { 'local access to database with same name':
       type        => 'local',
       auth_method => 'ident',
-      auth_option => $postgresql::params::version ? {
+      auth_option => $version ? {
         '8.1'   => 'sameuser',
         default => undef,
       },
@@ -46,7 +56,7 @@ class postgresql::server::config (
     }
     postgresql::pg_hba_rule { 'deny access to postgresql user':
       type        => 'host',
-      user        => $postgresql::params::user,
+      user        => $user,
       address     => $ip_mask_deny_postgres_user,
       auth_method => 'reject',
       order       => '003',

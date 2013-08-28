@@ -1,20 +1,32 @@
 class postgresql::server (
-  $ensure            = true,
-  $package_name      = $postgresql::params::server_package_name,
-  $package_ensure    = 'present',
-  $service_name      = $postgresql::params::service_name,
-  $service_provider  = $postgresql::params::service_provider,
-  $service_status    = $postgresql::params::service_status,
-  $config_hash       = {},
-  $postgres_password = undef,
-  $datadir           = $postgresql::params::datadir
+  $ensure                     = true,
+  $package_ensure             = 'present',
+  $postgres_password          = undef,
+  $package_name               = $postgresql::params::server_package_name,
+  $service_name               = $postgresql::params::service_name,
+  $service_provider           = $postgresql::params::service_provider,
+  $service_status             = $postgresql::params::service_status,
+  $ip_mask_deny_postgres_user = $postgresql::params::ip_mask_deny_postgres_user,
+  $ip_mask_allow_all_users    = $postgresql::params::ip_mask_allow_all_users,
+  $listen_addresses           = $postgresql::params::listen_addresses,
+  $ipv4acls                   = $postgresql::params::ipv4acls,
+  $ipv6acls                   = $postgresql::params::ipv6acls,
+  $pg_hba_conf_path           = $postgresql::params::pg_hba_conf_path,
+  $postgresql_conf_path       = $postgresql::params::postgresql_conf_path,
+  $manage_redhat_firewall     = $postgresql::params::manage_redhat_firewall,
+  $pg_hba_conf_defaults       = $postgresql::params::pg_hba_conf_defaults,
+  $datadir                    = $postgresql::params::datadir,
+  $user                       = $postgresql::params::user,
+  $group                      = $postgresql::params::group,
+  $version                    = $postgresql::params::version,
+  $needs_initdb               = $postgresql::params::needs_initdb
 ) inherits postgresql::params {
 
   anchor {
     'postgresql::server::start': ;
     'postgresql::server::end': ;
   }
-  
+
   # This gets signalled by configuration defines, to avoid doing a full service
   # restart.
   exec { 'reload_postgresql':
@@ -24,35 +36,46 @@ class postgresql::server (
     refreshonly => true,
   }
 
+  # TODO: fix me
   if ($ensure == 'absent' or $ensure == 'stopped' or $ensure == false) {
-    class { 'postgresql::server::package': ensure => absent }
-    class { 'postgresql::server::service': ensure => stopped }
+    class { 'postgresql::server::install': }
+    class { 'postgresql::server::service': }
+
     file { $datadir:
       ensure  => absent,
       recurse => true,
       force   => true,
     }
-    Anchor['postgresql::server::start'] ->
-    Class['postgresql::server::service'] -> Class['postgresql::server::package'] -> File[$datadir] ->
+
+    Anchor['postgresql::server::start']->
+    Class['postgresql::server::service']->
+    Class['postgresql::server::install']->
+    File[$datadir]->
     Anchor['postgresql::server::end']
   } else {
-    class { 'postgresql::server::package': }
-    $config_class = {
-      'postgresql::server::config' => $config_hash,
-    }
-    create_resources( 'class', $config_class )
-    class { 'postgresql::server::service': }
-    class { 'postgresql::server::passwd': postgres_password => $postgres_password }
 
-    if ($postgresql::params::needs_initdb) {
+    class { 'postgresql::server::install': }
+    class { 'postgresql::server::config': }
+    class { 'postgresql::server::service': }
+    class { 'postgresql::server::passwd': }
+
+    if ($needs_initdb) {
       include postgresql::server::initdb
-      Anchor['postgresql::server::start'] ->
-      Class['postgresql::server::package'] -> Class['postgresql::server::initdb'] -> Class['postgresql::server::config'] -> Class['postgresql::server::service'] -> Class['postgresql::server::passwd'] ->
+
+      Anchor['postgresql::server::start']->
+      Class['postgresql::server::install']->
+      Class['postgresql::server::initdb']->
+      Class['postgresql::server::config']->
+      Class['postgresql::server::service']->
+      Class['postgresql::server::passwd']->
       Anchor['postgresql::server::end']
     }
     else  {
-      Anchor['postgresql::server::start'] ->
-      Class['postgresql::server::package'] -> Class['postgresql::server::config'] -> Class['postgresql::server::service'] -> Class['postgresql::server::passwd'] ->
+      Anchor['postgresql::server::start']->
+      Class['postgresql::server::install']->
+      Class['postgresql::server::config']->
+      Class['postgresql::server::service']->
+      Class['postgresql::server::passwd']->
       Anchor['postgresql::server::end']
     }
 

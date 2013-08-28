@@ -1,3 +1,4 @@
+# PRIVATE CLASS: do not use directly
 class postgresql::package_source::yum_postgresql_org(
   $version
 ) {

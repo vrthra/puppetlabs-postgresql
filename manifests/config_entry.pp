@@ -1,34 +1,14 @@
-#
-# Parameters:
-#   ['ensure'] - Whether the setting should be present or absent. Default to present.
-#   ['value']  - The value of the configuration parameter.
-#   ['path']   - The path to the configuration file (optional)
-#
-# Actions:
-# - Creates and manages a postgresql configuration entry.
-#
-# Sample usage:
-#   postgresql::config_entry { 'shared_buffers':
-#     value => '128MB',
-#   }
-#
-#   postgresql::config_entry { 'fsync':
-#     ensure => absent, # reset to default value
-#   }
-#
-# See also:
-#   http://www.postgresql.org/docs/current/static/config-setting.html
-#
 define postgresql::config_entry (
-    $ensure='present',
-    $value=undef,
-    $path=false
+  $ensure = 'present',
+  $value = undef,
+  $path = false
 ) {
+  $postgresql_conf_path = $postgresql::params::postgresql_conf_path
 
   include '::postgresql::params'
 
   $target = $path ? {
-    false   => "${::postgresql::params::postgresql_conf_path}",
+    false   => "${postgresql_conf_path}",
     default => $path,
   }
 
@@ -56,7 +36,7 @@ define postgresql::config_entry (
         ensure  => $ensure,
         target  => $target,
         value   => $value,
-        require => Class['postgresql::server::package'],
+        require => Class['postgresql::server::install'],
       }
     }
 
