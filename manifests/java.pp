@@ -1,19 +1,4 @@
-# Class: postgresql::java
-#
-# This class installs the postgresql jdbc connector.
-#
-# Parameters:
-#   [*package_name*]    - The name of the postgresql java package.
-#   [*package_ensure*]  - The ensure value of the package.
-#
-# Actions:
-#
-# Requires:
-#
-# Sample Usage:
-#
-#   class { 'postgresql::java': }
-#
+# This class installs the postgresql jdbc connector. See README.md for more details.
 class postgresql::java (
   $package_name   = $postgresql::params::java_package_name,
   $package_ensure = 'present'

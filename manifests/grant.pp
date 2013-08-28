@@ -1,17 +1,7 @@
-# Resource postgresql::grant
-#
-# TODO: in mysql module, the grant resource name might look like this: 'user@host/dbname';
-#  I think that the API for the resource type should split these up, because it's
-#  easier / safer to recombine them for mysql than it is to parse them for other
-#  databases.  Also, in the mysql module, the hostname portion of that string
-#  affects the user's ability to connect from remote hosts.  In postgres this is
-#  managed via pg_hba.conf; not sure if we want to try to reconcile that difference
-#  in the modules or not.
+# Define for granting permissions to roles. See README.md for more details.
 define postgresql::grant (
   $role,
   $db,
-  # TODO: mysql supports an array of privileges here.  We should do that if we
-  #  port this to ruby.
   $privilege   = undef,
   $object_type = 'database',
   $object_name = $db,
@@ -73,5 +63,6 @@ define postgresql::grant (
     psql_group => $postgresql::params::group,
     psql_path  => $postgresql::params::psql_path,
     unless     => "SELECT 1 WHERE ${unless_function}('${role}', '${object_name}', '${unless_privilege}')",
+    require    => Class['postgresql::server']
   }
 }

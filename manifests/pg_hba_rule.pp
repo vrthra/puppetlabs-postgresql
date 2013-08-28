@@ -1,5 +1,5 @@
 # This resource manages an individual rule that applies to the file defined in
-# $target.
+# $target. See README.md for more details.
 define postgresql::pg_hba_rule(
   $type,
   $database,

@@ -1,4 +1,4 @@
-# Resource postgresql::table_grant
+# This resource wraps the grant resource to manage table grants specifically. See README.md for more details.
 define postgresql::table_grant(
   $privilege,
   $table,

@@ -17,7 +17,8 @@ class postgresql (
   $service_name         = undef,
   $user                 = undef,
   $group                = undef,
-  $run_initdb           = undef
+  $run_initdb           = undef,
+  $manage_firewall      = undef
 ) {
 
   class { 'postgresql::params':
@@ -38,6 +39,7 @@ class postgresql (
     custom_service_name         => $service_name,
     custom_user                 => $user,
     custom_group                => $group,
+    custom_manage_firewall      => $manage_firewall,
     run_initdb                  => $run_initdb,
   }
 }

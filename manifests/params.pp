@@ -18,6 +18,7 @@ class postgresql::params(
   $custom_service_name         = undef,
   $custom_user                 = undef,
   $custom_group                = undef,
+  $custom_manage_firewall      = undef,
   $run_initdb                  = undef
 ) {
   $user                         = pick($custom_user, 'postgres')
@@ -27,8 +28,6 @@ class postgresql::params(
   $listen_addresses             = 'localhost'
   $ipv4acls                     = []
   $ipv6acls                     = []
-  # TODO: figure out a way to make this not platform-specific
-  $manage_redhat_firewall       = false
 
   if ($manage_package_repo) {
     case $::osfamily {
@@ -113,9 +112,7 @@ class postgresql::params(
     }
 
     'Debian': {
-      $firewall_supported       = false
-      # TODO: not exactly sure yet what the right thing to do for Debian/Ubuntu is.
-      #$persist_firewall_command = '/sbin/iptables-save > /etc/iptables/rules.v4'
+      $firewall_supported       = true
 
       if $manage_package_repo == true {
         $needs_initdb = pick($run_initdb, true)
@@ -180,7 +177,6 @@ class postgresql::params(
       } else {
         fail("${err_msg_prefix}custom_server_package_name")
       }
-
 
       $contrib_package_name = $custom_contrib_package_name
       $devel_package_name   = $custom_devel_package_name

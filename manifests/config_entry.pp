@@ -1,3 +1,4 @@
+# Manage a postgresql.conf entry. See README.md for more details.
 define postgresql::config_entry (
   $ensure = 'present',
   $value = undef,

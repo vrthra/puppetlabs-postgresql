@@ -1,3 +1,4 @@
+# This installs a PostgreSQL server. See README.md for more details.
 class postgresql::server (
   $ensure                     = true,
   $package_ensure             = 'present',
@@ -13,13 +14,14 @@ class postgresql::server (
   $ipv6acls                   = $postgresql::params::ipv6acls,
   $pg_hba_conf_path           = $postgresql::params::pg_hba_conf_path,
   $postgresql_conf_path       = $postgresql::params::postgresql_conf_path,
-  $manage_redhat_firewall     = $postgresql::params::manage_redhat_firewall,
+  $manage_firewall            = $postgresql::params::manage_redhat_firewall,
   $pg_hba_conf_defaults       = $postgresql::params::pg_hba_conf_defaults,
   $datadir                    = $postgresql::params::datadir,
   $user                       = $postgresql::params::user,
   $group                      = $postgresql::params::group,
   $version                    = $postgresql::params::version,
-  $needs_initdb               = $postgresql::params::needs_initdb
+  $needs_initdb               = $postgresql::params::needs_initdb,
+  $firewall_supported         = $postgresql::params::firewall_supported
 ) inherits postgresql::params {
 
   anchor {
@@ -82,16 +84,8 @@ class postgresql::server (
   }
 
   # TODO: get rid of hard-coded port
-  if ($manage_redhat_firewall and $firewall_supported) {
-    class { 'firewall': }
-    exec { 'postgresql-persist-firewall':
-      command     => $persist_firewall_command,
-      refreshonly => true,
-    }
-
-    Firewall {
-      notify => Exec['postgresql-persist-firewall']
-    }
+  if ($manage_firewall and $firewall_supported) {
+    include firewall
 
     firewall { '5432 accept - postgres':
       port   => '5432',
@@ -99,5 +93,4 @@ class postgresql::server (
       action => 'accept',
     }
   }
-
 }

@@ -1,27 +1,4 @@
-# Define: postgresql::tablespace
-#
-# This module creates tablespace
-#
-# Parameters:
-#   [*title*]       - the name of a tablespace to be created. The name cannot begin with pg_, as such names are reserved for system tablespaces.
-#   [*owner*]       - the name of the user who will own the tablespace. If omitted, defaults to the user executing the command.
-#                     Only superusers can create tablespaces, but they can assign ownership of tablespaces to non-superusers.
-#   [*location*]    - The directory that will be used for the tablespace. The directory should be empty and must be owned by the PostgreSQL
-#                     system user. The directory must be specified by an absolute path name.
-#
-# Actions:
-#
-# Requires:
-#
-#   class postgresql::server
-#
-# Sample Usage:
-#
-#  postgresql::tablespace { 'dbspace':
-#    location => '/data/dbs',
-#  }
-#
-#
+# This module creates tablespace. See README.md for more details.
 define postgresql::tablespace(
   $location,
   $owner = undef,

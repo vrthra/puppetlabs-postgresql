@@ -3,7 +3,7 @@ require 'spec_helper_system'
 describe 'install:' do
   after :all do
     # Cleanup after tests have ran
-    puppet_apply("class { 'postgresql::server': ensure => absent }") do |r|
+    puppet_apply("class { 'postgresql::server': ensure => absent, package_ensure => 'absent' }") do |r|
       r.exit_code.should_not == 1
     end
   end
@@ -189,30 +189,6 @@ describe 'install:' do
         r.exit_code.should == 0
       end
 
-    end
-  end
-
-  describe 'postgresql::psql' do
-    it 'should work but emit a deprecation warning' do
-      pp = <<-EOS
-        include postgresql::server
-
-        postgresql::psql { 'foobar':
-          db       => 'postgres',
-          user     => 'postgres',
-          command  => 'select * from pg_database limit 1',
-          unless   => 'select 1 where 1=1',
-          require  => Class['postgresql::server'],
-        }
-      EOS
-
-      puppet_apply(pp) do |r|
-        r.exit_code.should_not == 1
-        r.stdout.should =~ /postgresql::psql is deprecated/
-        r.refresh
-        r.exit_code.should == 2
-        r.stdout.should =~ /postgresql::psql is deprecated/
-      end
     end
   end
 

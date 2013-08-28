@@ -9,6 +9,21 @@ module LocalHelpers
     psql = "psql #{psql_cmd}"
     shell("su #{shellescape(user)} -c #{shellescape(psql)}", &block)
   end
+
+  def cleanup
+    # Cleanup
+    psql('--command="drop database postgresql_test_db" postgres')
+    pp = <<-EOS
+      class { "postgresql": }->
+      class { "postgresql::plperl":
+        package_ensure => absent,
+      }->
+      class { 'postgresql::server':
+        ensure => absent,
+      }
+    EOS
+    puppet_apply(pp)
+  end
 end
 
 include RSpecSystemPuppet::Helpers

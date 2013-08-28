@@ -1,17 +1,4 @@
-# Class: postgresql::devel
-#
-#   This class installs postgresql development libraries
-#
-# Parameters:
-#   [*package_name*]   - The name of the postgresql development package.
-#   [*package_ensure*] - The ensure value of the package
-#
-# Actions:
-#
-# Requires:
-#
-# Sample Usage:
-#
+# This class installs postgresql development libraries. See README.md for more details.
 class postgresql::devel(
   $package_name   = $postgresql::params::devel_package_name,
   $package_ensure = 'present'
