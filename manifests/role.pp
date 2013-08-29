@@ -12,11 +12,11 @@ define postgresql::role(
 ) {
   include postgresql::params
 
-  $login_sql       = $login       ? { true => 'LOGIN'       , default => 'NOLOGIN' }
-  $createrole_sql  = $createrole  ? { true => 'CREATEROLE'  , default => 'NOCREATEROLE' }
-  $createdb_sql    = $createdb    ? { true => 'CREATEDB'    , default => 'NOCREATEDB' }
-  $superuser_sql   = $superuser   ? { true => 'SUPERUSER'   , default => 'NOSUPERUSER' }
-  $replication_sql = $replication ? { true => 'REPLICATION' , default => '' }
+  $login_sql       = $login       ? { true => 'LOGIN',       default => 'NOLOGIN' }
+  $createrole_sql  = $createrole  ? { true => 'CREATEROLE',  default => 'NOCREATEROLE' }
+  $createdb_sql    = $createdb    ? { true => 'CREATEDB',    default => 'NOCREATEDB' }
+  $superuser_sql   = $superuser   ? { true => 'SUPERUSER',   default => 'NOSUPERUSER' }
+  $replication_sql = $replication ? { true => 'REPLICATION', default => '' }
   if ($password_hash != false) {
     $password_sql = "ENCRYPTED PASSWORD '${password_hash}'"
   } else {

@@ -3,7 +3,7 @@ require 'spec_helper_system'
 describe 'install:' do
   after :all do
     # Cleanup after tests have ran
-    puppet_apply("class { 'postgresql::server': ensure => absent, package_ensure => 'absent' }") do |r|
+    puppet_apply("class { 'postgresql::server': ensure => absent }") do |r|
       r.exit_code.should_not == 1
     end
   end
@@ -27,7 +27,7 @@ describe 'install:' do
       begin
         pp = <<-EOS
           $db = 'postgresql_test_db'
-          include postgresql::server
+          class { 'postgresql::server': }
 
           postgresql::db { $db:
             user        => $db,
@@ -96,7 +96,7 @@ describe 'install:' do
       begin
         pp = <<-EOS
           $db = 'template2'
-          include postgresql::server
+          class { 'postgresql::server': }
 
           postgresql::db { $db:
             user        => $db,
@@ -129,7 +129,7 @@ describe 'install:' do
       begin
         pp = <<-EOS
           $db = 'template2'
-          include postgresql::server
+          class { 'postgresql::server': }
 
           postgresql::db { $db:
             user        => $db,
@@ -160,7 +160,7 @@ describe 'install:' do
   describe 'custom postgres password' do
     it 'should install and successfully adjust the password' do
       pp = <<-EOS
-        class { "postgresql::server":
+        class { 'postgresql::server':
           postgres_password => 'foobarbaz',
           ip_mask_deny_postgres_user => '0.0.0.0/32',
         }
@@ -175,7 +175,7 @@ describe 'install:' do
       end
 
       pp = <<-EOS
-        class { "postgresql::server":
+        class { 'postgresql::server':
           postgres_password => 'TPSR$$eports!',
           ip_mask_deny_postgres_user => '0.0.0.0/32',
         }
@@ -195,7 +195,7 @@ describe 'install:' do
   describe 'postgresql_psql' do
     it 'should run some SQL when the unless query returns no rows' do
       pp = <<-EOS
-        include postgresql::server
+        class { 'postgresql::server': }
 
         postgresql_psql { 'foobar':
           db          => 'postgres',
@@ -215,7 +215,7 @@ describe 'install:' do
 
     it 'should not run SQL when the unless query returns rows' do
       pp = <<-EOS
-        include postgresql::server
+        class { 'postgresql::server': }
 
         postgresql_psql { 'foobar':
           db          => 'postgres',
@@ -240,7 +240,7 @@ describe 'install:' do
         $user = "postgresql_test_user"
         $password = "postgresql_test_password"
 
-        include postgresql::server
+        class { 'postgresql::server': }
 
         # Since we are not testing pg_hba or any of that, make a local user for ident auth
         user { $user:
@@ -273,7 +273,7 @@ describe 'install:' do
         $user = "postgresql_test_user"
         $password = "postgresql_test_password2"
 
-        include postgresql::server
+        class { 'postgresql::server': }
 
         # Since we are not testing pg_hba or any of that, make a local user for ident auth
         user { $user:
@@ -306,7 +306,7 @@ describe 'install:' do
         $user = "postgresql_test_user2"
         $password = "postgresql_test_password2"
 
-        include postgresql::server
+        class { 'postgresql::server': }
 
         # Since we are not testing pg_hba or any of that, make a local user for ident auth
         user { $user:
@@ -338,7 +338,8 @@ describe 'install:' do
   describe 'postgresql::database_user' do
     it 'should throw a deprecation warning' do
       pp = <<-EOS
-        include postgresql::server
+        class { 'postgresql::server': }
+
         postgresql::database_user { 'test_deprecation':
           password_hash => 'foobar',
         }
@@ -361,7 +362,7 @@ describe 'install:' do
           $user = 'psql_grant_tester'
           $password = 'psql_grant_pw'
 
-          include postgresql::server
+          class { 'postgresql::server': }
 
           # Since we are not testing pg_hba or any of that, make a local user for ident auth
           user { $user:
@@ -417,7 +418,7 @@ describe 'install:' do
           $user = 'psql_table_tester'
           $password = 'psql_table_pw'
 
-          include postgresql::server
+          class { 'postgresql::server': }
 
           # Since we are not testing pg_hba or any of that, make a local user for ident auth
           user { $user:
@@ -478,7 +479,7 @@ describe 'install:' do
     it 'should run puppet with no changes declared if database connectivity works' do
       pp = <<-EOS
         $db = 'foo'
-        include postgresql::server
+        class { 'postgresql::server': }
 
         postgresql::db { $db:
           user        => $db,
@@ -525,7 +526,7 @@ describe 'install:' do
   describe 'postgresql::tablespace' do
     it 'should idempotently create tablespaces and databases that are using them' do
       pp = <<-EOS
-        include postgresql::server
+        class { 'postgresql::server': }
 
         file { '/tmp/pg_tablespaces':
           ensure  => 'directory',
@@ -597,7 +598,7 @@ describe 'install:' do
   describe 'postgresql::pg_hba_rule' do
     it 'should create a ruleset in pg_hba.conf' do
       pp = <<-EOS
-        include postgresql::server
+        class { 'postgresql::server': }
         postgresql::pg_hba_rule { "allow application network to access app database":
           type => "host",
           database => "app",
@@ -622,12 +623,14 @@ describe 'install:' do
 
     it 'should create a ruleset in pg_hba.conf that denies db access to db test1' do
       pp = <<-EOS
-        include postgresql::server
+        class { 'postgresql::server': }
+
         postgresql::db { "test1":
           user => "test1",
           password => postgresql_password('test1', 'test1'),
           grant => "all",
         }
+
         postgresql::pg_hba_rule { "allow anyone to have access to db test1":
           type => "local",
           database => "test1",
@@ -635,6 +638,7 @@ describe 'install:' do
           auth_method => reject,
           order => '001',
         }
+
         user { "test1":
           shell => "/bin/bash",
           managehome => true,

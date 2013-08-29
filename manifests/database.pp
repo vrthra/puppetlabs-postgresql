@@ -1,19 +1,23 @@
 # Define for creating a database. See README.md for more details.
 define postgresql::database(
-  $dbname   = $title,
-  $owner = $postgresql::params::user,
+  $dbname     = $title,
+  $owner      = $postgresql::params::user,
   $tablespace = undef,
-  $charset  = $postgresql::params::charset,
-  $locale   = $postgresql::params::locale,
+  $charset    = $postgresql::params::charset,
+  $locale     = $postgresql::params::locale,
   $istemplate = false
 ) {
   include postgresql::params
 
+  $createdb_path = $postgresql::params::createdb_path
+  $user          = $postgresql::params::user
+  $psql_path     = $postgresql::params::psql_path
+
   # Set the defaults for the postgresql_psql resource
   Postgresql_psql {
-    psql_user    => $postgresql::params::user,
-    psql_group   => $postgresql::params::group,
-    psql_path    => $postgresql::params::psql_path,
+    psql_user  => $user,
+    psql_group => $group,
+    psql_path  => $psql_path,
   }
 
   # Optionally set the locale switch. Older versions of createdb may not accept
@@ -29,7 +33,7 @@ define postgresql::database(
     $public_revoke_privilege = 'ALL'
   }
 
-  $createdb_command_tmp = "${postgresql::params::createdb_path} --owner='${owner}' --template=template0 --encoding '${charset}' ${locale_option} '${dbname}'"
+  $createdb_command_tmp = "${createdb_path} --owner='${owner}' --template=template0 --encoding '${charset}' ${locale_option} '${dbname}'"
 
   if($tablespace == undef) {
     $createdb_command = $createdb_command_tmp
@@ -46,14 +50,14 @@ define postgresql::database(
 
   exec { $createdb_command :
     refreshonly => true,
-    user        => $postgresql::params::user,
+    user        => $user,
     logoutput   => on_failure,
   } ~>
 
   # This will prevent users from connecting to the database unless they've been
   #  granted privileges.
   postgresql_psql {"REVOKE ${public_revoke_privilege} ON DATABASE \"${dbname}\" FROM public":
-    db          => $postgresql::params::user,
+    db          => $user,
     refreshonly => true,
   }
 

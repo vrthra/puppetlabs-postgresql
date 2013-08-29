@@ -39,7 +39,7 @@ class postgresql (
     custom_service_name         => $service_name,
     custom_user                 => $user,
     custom_group                => $group,
-    custom_manage_firewall      => $manage_firewall,
     run_initdb                  => $run_initdb,
+    manage_firewall             => $manage_firewall,
   }
 }

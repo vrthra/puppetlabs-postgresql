@@ -9,15 +9,21 @@ describe 'postgresql::server', :type => :class do
       :kernel => 'Linux',
     }
   end
-  it { should include_class("postgresql::server") }
+
+  describe 'with no parameters' do
+    it { should include_class("postgresql::server") }
+  end
 
   describe 'with manage_firewall' do
     let(:params) do
       {
         :manage_firewall => true,
+        :firewall_supported => true,
+        :ensure => true,
       }
     end
 
-    it { should include_class("firewall") }
+    it { should include_class("postgresql::server::firewall") }
+    it { should contain_firewall("5432 accept - postgres") }
   end
 end

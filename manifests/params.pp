@@ -18,16 +18,17 @@ class postgresql::params(
   $custom_service_name         = undef,
   $custom_user                 = undef,
   $custom_group                = undef,
-  $custom_manage_firewall      = undef,
+  $manage_firewall             = undef,
   $run_initdb                  = undef
 ) {
-  $user                         = pick($custom_user, 'postgres')
-  $group                        = pick($custom_group, 'postgres')
+  $listen_addresses             = 'localhost'
   $ip_mask_deny_postgres_user   = '0.0.0.0/0'
   $ip_mask_allow_all_users      = '127.0.0.1/32'
-  $listen_addresses             = 'localhost'
   $ipv4acls                     = []
   $ipv6acls                     = []
+
+  $user                         = pick($custom_user, 'postgres')
+  $group                        = pick($custom_group, 'postgres')
 
   if ($manage_package_repo) {
     case $::osfamily {
@@ -61,8 +62,8 @@ class postgresql::params(
   # This is a bit hacky, but if the puppet nodes don't have pluginsync enabled,
   # they will fail with a not-so-helpful error message.  Here we are explicitly
   # verifying that the custom fact exists (which implies that pluginsync is
-  # enabled and succeeded).  If not, we fail with a hint that tells the user
-  # that pluginsync might not be enabled.  Ideally this would be handled directly
+  # enabled and succeeded). If not, we fail with a hint that tells the user
+  # that pluginsync might not be enabled. Ideally this would be handled directly
   # in puppet.
   if ($::postgres_default_version == undef) {
     fail('No value for postgres_default_version facter fact; it\'s possible that you don\'t have pluginsync enabled.')

@@ -1,5 +1,5 @@
-# Define for conveniently creating a role, database and assigning the correct permissions.
-# See README.md for more details.
+# Define for conveniently creating a role, database and assigning the correct
+# permissions. See README.md for more details.
 define postgresql::db (
   $user,
   $password,

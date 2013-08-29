@@ -1,30 +1,44 @@
 # PRIVATE CLASS: do not call directly
 class postgresql::server::initdb {
-  $datadir     = $postgresql::server::datadir
-  $encoding    = $postgresql::server::charset
-  $group       = $postgresql::server::group
-  $initdb_path = $postgresql::server::initdb_path
-  $user        = $postgresql::server::user
-  $locale      = $postgresql::server::locale
-  $package_name = $postgresql::server::server_package_name
+  $ensure       = $postgresql::server::ensure
+  $needs_initdb = $postgresql::server::needs_initdb
+  $initdb_path  = $postgresql::server::initdb_path
+  $datadir      = $postgresql::server::datadir
+  $encoding     = $postgresql::server::charset
+  $locale       = $postgresql::server::locale
+  $group        = $postgresql::server::group
+  $user         = $postgresql::server::user
 
   # Build up the initdb command.
   #
   # We optionally add the locale switch if specified. Older versions of the
   # initdb command don't accept this switch. So if the user didn't pass the
   # parameter, lets not pass the switch at all.
+  $ic_base = "${initdb_path} --encoding '${encoding}' --pgdata '${datadir}'"
   $initdb_command = $locale ? {
-    undef   => "${initdb_path} --encoding '${encoding}' --pgdata '${datadir}'",
-    default => "${initdb_path} --encoding '${encoding}' --pgdata '${datadir}' --locale '${locale}'"
+    undef   => $ic_base,
+    default => "${ic_base} --locale '${locale}'"
   }
 
-  # This runs the initdb command, we use the existance of the PG_VERSION file to
-  # ensure we don't keep running this command.
-  exec { 'postgresql_initdb':
-    command   => $initdb_command,
-    creates   => "${datadir}/PG_VERSION",
-    user      => $user,
-    group     => $group,
-    logoutput => on_failure,
+  if($ensure == 'present' or $ensure == true) {
+    if($needs_initdb) {
+
+      # This runs the initdb command, we use the existance of the PG_VERSION
+      # file to ensure we don't keep running this command.
+      exec { 'postgresql_initdb':
+        command   => $initdb_command,
+        creates   => "${datadir}/PG_VERSION",
+        user      => $user,
+        group     => $group,
+        logoutput => on_failure,
+      }
+    }
+  } else {
+    # Purge data directory if ensure => absent
+    file { $datadir:
+      ensure  => absent,
+      recurse => true,
+      force   => true,
+    }
   }
 }

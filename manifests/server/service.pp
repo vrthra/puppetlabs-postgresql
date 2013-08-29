@@ -6,9 +6,9 @@ class postgresql::server::service {
   $service_status   = $postgresql::server::service_status
 
   $service_ensure = $ensure ? {
-    "present" => true,
-    "absent"  => false,
-    default   => $ensure
+    present => true,
+    absent  => false,
+    default => $ensure
   }
 
   service { 'postgresqld':

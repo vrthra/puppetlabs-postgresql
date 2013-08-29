@@ -1,4 +1,5 @@
-# This class installs the postgresql jdbc connector. See README.md for more details.
+# This class installs the postgresql jdbc connector. See README.md for more
+# details.
 class postgresql::java (
   $package_name   = $postgresql::params::java_package_name,
   $package_ensure = 'present'

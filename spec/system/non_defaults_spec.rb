@@ -26,8 +26,8 @@ describe 'non defaults:' do
           version              => "9.2",
           manage_package_repo  => true,
         }->
-        class { "postgresql::plperl":
-          package_ensure => absent,
+        class { "postgresql::server::plperl":
+          ensure => absent,
         }->
         class { 'postgresql::server':
           ensure => absent,
@@ -52,7 +52,7 @@ describe 'non defaults:' do
           user        => "foo1",
           password    => postgresql_password('foo1', 'foo1'),
         }->
-        class { "postgresql::plperl": }
+        class { "postgresql::server::plperl": }
       EOS
 
       puppet_apply(pp) do |r|

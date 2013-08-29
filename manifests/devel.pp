@@ -1,4 +1,5 @@
-# This class installs postgresql development libraries. See README.md for more details.
+# This class installs postgresql development libraries. See README.md for more
+# details.
 class postgresql::devel(
   $package_name   = $postgresql::params::devel_package_name,
   $package_ensure = 'present'
